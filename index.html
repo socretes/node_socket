@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Ping Pong</title>
+	<script type="text/javascript" src="socket.io.js"></script>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.0.js"></script>
+</head>
+<body>
+<div>
+<input type="text" id="username">
+<button id="join">Join</button>
+</div>
+<div id="messageContainer" hidden="true">
+<input type="text" id="message">
+<button id="send">Send to all</button>
+</div>
+<div id="sent"></div>
+<ul id="messages">
+</ul>
+<script>
+var socket = io.connect('http://localhost:4567');
+
+var $join = $('#join');
+var $username = $('#username');
+var $send = $('#send');
+var $messageContainer = $("#messageContainer");
+var $message = $('#message');
+var $messages = $('#messages');
+var $sent = $('#sent');
+
+$join.on('click', function(){
+       var value = $username.val();
+
+        if (value === ''){
+             alert('username required');
+             return;
+        }
+
+	$messageContainer.show();
+        $join.hide();
+        $username.prop( "disabled", true );
+	socket.emit('join', {username: $username.val()});
+});
+
+socket.on('userJoined', function(data){
+	addLi(data.username + ' has joined');
+});
+
+$send.on('click', function(){
+        if ($username === ''){
+             alert('username required');
+             return;
+        }
+        
+        var value = $message.val();
+        if (value === ''){
+             alert('message required');
+             return;
+        }
+
+	socket.emit('message', {message: value}, function(message){
+		if (message === 'ack')
+		{
+			$sent.html('Message sent');
+		}
+	});
+});
+
+
+
+socket.on('message', function(data){
+	addLi(data.data.message + ' (from ' + data.username + ')');
+});
+
+socket.on('userDisconnect', function(data){
+		addLi(data.username + ' has left');
+});
+
+
+function addLi(message) {
+	$messages.append('<li>' + message + '</li>');
+};
+
+</script>
+</body>
+</html>

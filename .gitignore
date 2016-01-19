@@ -1,0 +1,5 @@
+
+*.log
+socket.io*
+
+node_modules/
